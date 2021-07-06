@@ -1,0 +1,71 @@
+html {
+    font-family: sans-serif;
+}
+
+body  {
+    background-color: #c7b39b;
+    height: fit-content;
+}
+
+table {
+    border-collapse: collapse;
+    border: none;
+    letter-spacing: 1px;
+    font-size: 0.8rem;
+}
+
+td, th {
+    padding: 10px 20px;
+}
+
+td {
+    text-align: center;
+}
+    
+#header {
+    top: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 0;
+    height: 15%;
+}
+#header h1 {
+    font-family: "Lucida Console", "Courier New", cursive;
+    color: #111111;
+    text-align: center;
+}
+
+#content {
+    display: flex;
+    justify-content: center;
+    background: none;
+    border: 2px solid black;
+    padding: 5% 5% 5%;
+    margin-top: 1%;
+    margin-bottom: 1%;
+    height: fit-content;
+}
+
+tr {
+  text-decoration: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  padding: 20px 30px;
+  border-radius: 10px;
+  font-family: 'Montserrat', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background-image: linear-gradient(to right, #9EEFE1 0%, #4830F0 65%);
+  background-size: auto;
+  box-shadow: 0 0 20px rgba(0, 0, 0, .3);
+  transition: .5s;
+  width: auto;
+}
+
+tr:hover {
+  background-image: linear-gradient(to right, #9EEFE1 0%, #4830F0 35%);
+  box-shadow: 0 0 20px rgba(0, 0, 0, .8);
+}
