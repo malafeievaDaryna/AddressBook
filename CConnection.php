@@ -1,5 +1,7 @@
 <?php
 
+require_once 'Logger.php';
+
 class CContact {
     public string $name;
     public string $phone;
@@ -17,28 +19,50 @@ class CConnection {
     private $conn = NULL;
 
     function __construct() {
+        Logger::getInstance()->log(__METHOD__);
         mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
         try {
             $this->conn = new mysqli(self::SERVERNAME, self::USERNAME, self::PASSWORD, self::DBNAME);
         } catch (mysqli_sql_exception $e) {
-            die("Connection failed: " . $e->__toString());
+            Logger::getInstance()->log("Connection failed: " . $e->__toString());
+            die();
         }
     }
 
-    function insert(string $name, string $phone) {
-        $sql = "INSERT INTO" . self::TABLE ."(NAME,PHONE)
-               VALUES ('" . htmlspecialchars($name) . "' , '" . htmlspecialchars($phone) . "');";
-
-        if ($conn && ($conn->query($sql) === TRUE)) {
-            echo "New record created successfully";
+    function insertContact(CContact $contact) {
+        $sql = "INSERT INTO " . self::TABLE ." (NAME,PHONE)
+               VALUES ('" . htmlspecialchars($contact->name) . "' , '" . htmlspecialchars($contact->phone) . "');";
+        Logger::getInstance()->log(__METHOD__ . " " . $sql);
+        if ($this->conn && ($this->conn->query($sql) === TRUE)) {
         } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
+            Logger::getInstance()->log("Error: " . $this->conn->error);
         }
+    }
+    
+    function getContacts() : array {
+        $arr = [];
+        $sql = "SELECT ID, NAME, PHONE FROM " . self::TABLE . ";";
+        Logger::getInstance()->log(__METHOD__ . " " . $sql);
+        if ( $this->conn && ($result = $this->conn->query($sql))) {
+            if ($result->num_rows > 0) {
+                while ($row = $result->fetch_object()) {
+                    Logger::getInstance()->log("id: " . $row->ID . " Name: " . $row->NAME . " PHONE " . $row->PHONE);
+                    array_push($arr, $row);
+                }
+            } else {
+                Logger::getInstance()->log("0 results");
+            }
+        } else {
+            Logger::getInstance()->log("Error: " . $this->conn->error);
+        }
+        
+        return $arr;
     }
 
     function __destruct() {
-        if ($conn) {
-            $conn->close();
+        Logger::getInstance()->log(__METHOD__ );
+        if ($this->conn) {
+            $this->conn->close();
         }
     }
 

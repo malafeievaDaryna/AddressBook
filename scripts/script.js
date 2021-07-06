@@ -1,6 +1,6 @@
 function CreateRequest()
 {
-    var Request = false;
+    let Request = false;
 
     if (window.XMLHttpRequest)
     {
@@ -38,13 +38,32 @@ function ready() {
 
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
-            document.getElementById("content").innerHTML = this.responseText;
             console.log(this.responseText);
+
+            let table = document.getElementById("contacts");
+            const contacts = JSON.parse(this.responseText);
+
+            if (contacts)
+            {
+                contacts.forEach((obj) => {
+                    let row = table.insertRow();
+                    Object.entries(obj).forEach(([key, value]) => {
+                        //console.log(key + " " + value);
+
+                        let cell = row.insertCell();
+                        cell.innerHTML = value;
+                    });
+                });
+            } else
+            {
+                console.log("error when parsing");
+            }
+
         }
     };
     xhttp.open('POST', '../db_proxy.php', true);
+    xhttp.setRequestHeader('Accept', 'application/json');
     xhttp.send();
 }
 
 document.addEventListener("DOMContentLoaded", ready);
-console.log("jjj");
