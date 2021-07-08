@@ -22,13 +22,55 @@ function CreateRequest()
  
     if (!Request)
     {
-        alert("Невозможно создать XMLHttpRequest");
+        console.log("error when creatint XMLHttpRequest");
     }
     
     return Request;
 } 
 
+function refresh(obj) {
+    if (obj.readyState === 4 && obj.status === 200) {
+        console.log(obj.responseText);
 
+        let table = document.getElementById("contacts");
+        const contacts = JSON.parse(obj.responseText);
+        
+        table.innerHTML = "";
+
+        if (contacts)
+        {
+            contacts.forEach((obj) => {
+                let row = table.insertRow();
+                Object.entries(obj).forEach(([key, value]) => {
+                    //console.log(key + " " + value);
+
+                    let cell = row.insertCell();
+                    
+                    if (key === 'NAME')
+                    {
+                        row.onclick = function () {
+                            document.getElementById("name").value = value;
+                        };
+                    }
+
+                    if (key === 'ID')
+                    {
+                        cell.innerHTML = "<button onClick='deleteContact(this)' id='" + value + "'> delete </button>";
+                    } else
+                    {
+                        cell.innerHTML = value;
+                    }
+                });
+            });
+        } else
+        {
+            console.log("error when parsing");
+        }
+
+    }
+}
+;
+    
 function ready() {
     let xhttp = CreateRequest();
     if (!xhttp)
@@ -36,34 +78,37 @@ function ready() {
         return;
     }
 
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            console.log(this.responseText);
-
-            let table = document.getElementById("contacts");
-            const contacts = JSON.parse(this.responseText);
-
-            if (contacts)
-            {
-                contacts.forEach((obj) => {
-                    let row = table.insertRow();
-                    Object.entries(obj).forEach(([key, value]) => {
-                        //console.log(key + " " + value);
-
-                        let cell = row.insertCell();
-                        cell.innerHTML = value;
-                    });
-                });
-            } else
-            {
-                console.log("error when parsing");
-            }
-
-        }
-    };
+    xhttp.onreadystatechange = function () { refresh(this); };
     xhttp.open('POST', '../db_proxy.php', true);
-    xhttp.setRequestHeader('Accept', 'application/json');
-    xhttp.send();
+    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhttp.send("request=getContacts");
+}
+
+function deleteContact(obj) {
+    let xhttp = CreateRequest();
+    if (xhttp)
+    {
+        let id = obj.id;
+
+        xhttp.onreadystatechange = function () { ready(); };
+        xhttp.open('POST', '../db_proxy.php', true);
+        xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        xhttp.send("request=delete&id=" + id);
+    } 
 }
 
 document.addEventListener("DOMContentLoaded", ready);
+
+document.getElementById("adding").onclick = function() {
+    let xhttp = CreateRequest();
+    if (xhttp)
+    {
+        let name = document.getElementById("name").value;
+        let phone = document.getElementById("phone").value;
+
+        xhttp.onreadystatechange = function () { ready(); };
+        xhttp.open('POST', '../db_proxy.php', true);
+        xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        xhttp.send("request=insert&name=" + name + "&phone=" + phone);
+    }
+};

@@ -3,8 +3,16 @@
 require_once 'Logger.php';
 
 class CContact {
+    public int $id;
     public string $name;
     public string $phone;
+    
+    function __construct(string $name, string $phone, int $id = 0)
+    {
+        $this->id = $id;
+        $this->name = $name;
+        $this->phone = $phone;
+    }
 }
 
 class CConnection {
@@ -28,22 +36,49 @@ class CConnection {
             die();
         }
     }
-
-    function insertContact(CContact $contact) {
-        $sql = "INSERT INTO " . self::TABLE ." (NAME,PHONE)
-               VALUES ('" . htmlspecialchars($contact->name) . "' , '" . htmlspecialchars($contact->phone) . "');";
-        Logger::getInstance()->log(__METHOD__ . " " . $sql);
-        if ($this->conn && ($this->conn->query($sql) === TRUE)) {
-        } else {
-            Logger::getInstance()->log("Error: " . $this->conn->error);
+    
+    private function executeQuery(string $sql) {
+        $res = $this->conn->query($sql);
+        if (!$res) {
+            Logger::getInstance()->log("Error: " . $this->conn->error );
         }
+        
+        return $res;
+    }
+
+    function insertOrUpdateContact(CContact $contact) {
+        // first check whether such contact already present
+        $sql = "SELECT * FROM " . self::TABLE . " WHERE NAME = '" . $contact->name ."';";
+        Logger::getInstance()->log(__METHOD__ . " " . $sql);
+        if ( $result = $this->executeQuery($sql) ) {
+            // already present then we'll update
+            if ($result->num_rows > 0) {
+                $row = $result->fetch_object();
+                $sql = "UPDATE " . self::TABLE . " SET PHONE = '" . htmlspecialchars($contact->phone) . 
+                        "' WHERE ID = $row->ID;";
+                Logger::getInstance()->log(__METHOD__ . " " . $sql);
+                $this->executeQuery($sql);
+            }
+            else {
+                $sql = "INSERT INTO " . self::TABLE . " (NAME,PHONE)
+                        VALUES ('" . htmlspecialchars($contact->name) . "' , '" . htmlspecialchars($contact->phone) . "');";
+                Logger::getInstance()->log(__METHOD__ . " " . $sql);
+                $this->executeQuery($sql);
+            }
+        }
+    }
+    
+    function deleteContact(int $id) {
+        $sql = "DELETE FROM " . self::TABLE ." WHERE ID = $id;";
+        Logger::getInstance()->log(__METHOD__ . " " . $sql);
+        $this->executeQuery($sql);
     }
     
     function getContacts() : array {
         $arr = [];
         $sql = "SELECT ID, NAME, PHONE FROM " . self::TABLE . ";";
         Logger::getInstance()->log(__METHOD__ . " " . $sql);
-        if ( $this->conn && ($result = $this->conn->query($sql))) {
+        if ($result = $this->executeQuery($sql)) {
             if ($result->num_rows > 0) {
                 while ($row = $result->fetch_object()) {
                     Logger::getInstance()->log("id: " . $row->ID . " Name: " . $row->NAME . " PHONE " . $row->PHONE);
@@ -52,8 +87,6 @@ class CConnection {
             } else {
                 Logger::getInstance()->log("0 results");
             }
-        } else {
-            Logger::getInstance()->log("Error: " . $this->conn->error);
         }
         
         return $arr;
